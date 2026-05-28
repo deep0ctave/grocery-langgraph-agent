@@ -10,6 +10,16 @@ It uses a multi-node agent flow:
 5. Execute in DuckDB
 6. Synthesize final answer
 
+## Why this project
+
+1. Shows practical agent design, not just a single prompt call.
+2. Demonstrates controlled SQL generation with validation and sanitization.
+3. Uses snapshot-based data modeling, which mirrors real analytics pipelines.
+4. Separates company-context responses from data-query responses.
+5. Includes sensitive-value tokenization and in-memory restoration flow.
+
+This makes it a strong learning project for prompt engineering, workflow orchestration, and safe data access patterns.
+
 ## What this project demonstrates
 
 1. Branch-based snapshot data model: branch/resource/timestamped CSV files
@@ -99,6 +109,51 @@ uv run main.py --verbose "What were the total sales in branch_a in January 2025?
 4. Which branch has the highest total inventory for dairy products?
 5. Show me the top 3 best-selling products in branch_b by quantity.
 6. What products are out of stock in branch_c?
+
+## Sample terminal outputs
+
+Dataset query:
+
+```text
+$ uv run main.py --verbose "Compare the price of whole milk across all three branches"
+
+Q: Compare the price of whole milk across all three branches
+
+[debug] sql_query      : SELECT branch, product_name, price
+FROM (
+	SELECT 'branch_a' AS branch, p.product_name, p.price
+		FROM branch_a_products p
+		WHERE p.product_name ILIKE '%whole milk%'
+	UNION ALL
+	SELECT 'branch_b', p.product_name, p.price
+		FROM branch_b_products p
+		WHERE p.product_name ILIKE '%whole milk%'
+	UNION ALL
+	SELECT 'branch_c', p.product_name, p.price
+		FROM branch_c_products p
+		WHERE p.product_name ILIKE '%whole milk%'
+) t
+[debug] sql_is_valid   : True
+[debug] target_snapshot: None
+[debug] error          : None
+
+A: Branch A: $3.04, Branch B: $3.88, Branch C: $3.48.
+```
+
+Off-topic rejection:
+
+```text
+$ uv run main.py --verbose "How do you fix a bug in Python?"
+
+Q: How do you fix a bug in Python?
+
+[debug] sql_query      :
+[debug] sql_is_valid   : False
+[debug] target_snapshot: None
+[debug] error          : None
+
+A: I can only answer questions about FreshMart Co. and its data.
+```
 
 ## Data model summary
 
