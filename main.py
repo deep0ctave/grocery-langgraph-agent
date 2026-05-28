@@ -4,9 +4,10 @@ main.py
 Entry point for the FreshMart data agent.
 
 Before the first run:
-  1. Add your OpenAI key to a .env file:   OPENAI_API_KEY=sk-...
-  2. Generate sample data:                 uv run generate_data.py
-  3. Start the agent:                      uv run main.py
+    1. Make sure Ollama is running locally
+    2. Pull the model once:                  ollama pull qwen2.5
+    3. Generate sample data:                 uv run generate_data.py
+    4. Start the agent:                      uv run main.py
 
 Usage:
   uv run main.py                      # interactive REPL
