@@ -1,0 +1,22 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Local environment and secrets
+.env
+secret.key
+
+# Generated project artifacts
+data/
+hash_lookup.json
+schema_registry.json
+
+# Local tooling
+.python-version
