@@ -3,6 +3,7 @@
 set -eu
 
 MODEL_NAME="${MODEL_NAME:-qwen2.5}"
+MODEL_BASE_NAME=$(printf '%s' "$MODEL_NAME" | cut -d: -f1)
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 log() {
@@ -48,7 +49,7 @@ setup_project() {
   log "Ensuring Ollama model '$MODEL_NAME' is available..."
   # Normalize installed model names by dropping optional tags (e.g., ":latest").
   installed_models=$(ollama list 2>/dev/null | awk 'NR > 1 {print $1}' | cut -d: -f1)
-  if ! printf '%s\n' "$installed_models" | grep -Fxq "${MODEL_NAME}"; then
+  if ! printf '%s\n' "$installed_models" | grep -Fxq "${MODEL_BASE_NAME}"; then
     ollama pull "$MODEL_NAME"
   fi
 
