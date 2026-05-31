@@ -32,7 +32,7 @@ install_uv_if_missing() {
   export PATH="$HOME/.local/bin:$PATH"
   if ! command -v uv >/dev/null 2>&1; then
     log "Error: uv installed but not found in PATH."
-    log "Add \$HOME/.local/bin to your PATH and rerun ./setup.sh."
+    log "Add \$HOME/.local/bin to your PATH and rerun this script."
     exit 1
   fi
 }
@@ -46,7 +46,7 @@ setup_project() {
   uv sync
 
   log "Ensuring Ollama model '$MODEL_NAME' is available..."
-  if ! ollama list 2>/dev/null | grep -q "^${MODEL_NAME}"; then
+  if ! ollama list 2>/dev/null | awk 'NR > 1 {print $1}' | cut -d: -f1 | grep -Fxq "${MODEL_NAME}"; then
     ollama pull "$MODEL_NAME"
   fi
 
