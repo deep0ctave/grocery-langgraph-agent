@@ -233,6 +233,32 @@ def dataset_resolver(state: AgentState) -> dict:
             ],
         })
 
+    # Ensure JOIN-compatible context: if sales/inventory is selected for a branch,
+    # include that branch's products table so SQL generation can safely join for names/categories.
+    existing = {(d["branch"], d["resource"]) for d in enriched}
+    auto_added = []
+    for ds in enriched:
+        if ds["resource"] not in {"sales", "inventory"}:
+            continue
+        key = (ds["branch"], "products")
+        if key in existing:
+            continue
+        pdata = reg["branches"][ds["branch"]]["resources"]["products"]
+        auto_added.append({
+            "branch":            ds["branch"],
+            "resource":          "products",
+            "path":              pdata["path"],
+            "files":             pdata["files"],
+            "requested_columns": ["product_id", "product_name", "category"],
+            "all_columns":       list(pdata["columns"].keys()),
+            "sensitive_columns": [
+                col for col, meta in pdata["columns"].items() if meta["is_sensitive"]
+            ],
+        })
+        existing.add(key)
+
+    enriched.extend(auto_added)
+
     return {"relevant_datasets": enriched}
 
 
@@ -292,6 +318,26 @@ def temporal_resolver(state: AgentState) -> dict:
 
 def sql_generator(state: AgentState) -> dict:
     """Translate the user question into a DuckDB SQL query."""
+    q_lower = state["user_query"].lower()
+
+    # Deterministic fallback for a known high-value pattern that small local models often miss.
+    if "most expensive" in q_lower and "each branch" in q_lower:
+        branches = sorted(
+            {ds["branch"] for ds in state["relevant_datasets"] if ds["resource"] == "products"}
+        )
+        if branches:
+            parts = []
+            for branch in branches:
+                parts.append(
+                    f"SELECT '{branch}' AS branch, p.product_name, p.price\n"
+                    f"FROM {branch}_products p\n"
+                    f"JOIN (\n"
+                    f"  SELECT MAX(price) AS max_price\n"
+                    f"  FROM {branch}_products\n"
+                    f") m ON p.price = m.max_price"
+                )
+            return {"sql_query": "\nUNION ALL\n".join(parts)}
+
     schema_lines = []
     table_names  = []
 
@@ -321,6 +367,8 @@ def sql_generator(state: AgentState) -> dict:
             "- Only the 'sales' table has a sale_date column you may filter on.\n"
             "- When the result should show product names, JOIN the sales or inventory table "
             "with the corresponding products table on product_id.\n"
+            "- For per-branch extrema (for example: most expensive product in each branch), "
+            "compute the max inside each branch table and join back to that same branch table.\n"
             "- Only SELECT — no INSERT / UPDATE / DELETE / DROP / CREATE / ALTER.\n"
             "- Reference tables by name (e.g. FROM branch_a_products).\n"
             "- Output ONLY the SQL — no explanation, no markdown fences.\n\n"
@@ -487,7 +535,7 @@ def response_synthesizer(state: AgentState) -> dict:
     if state.get("final_response"):
         return {}
 
-    results_json = json.dumps(state.get("query_results", []), indent=2)
+    results_json = json.dumps(state.get("query_results", []), indent=2, default=str)
     response = _llm(
         system=(
             "You are a helpful data analyst for FreshMart Co.\n"
