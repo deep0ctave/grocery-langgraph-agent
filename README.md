@@ -71,16 +71,16 @@ ollama pull qwen2.5
 
 ## Quick start
 
-1. Install dependencies:
+1. Run project setup:
 
 ```bash
-uv sync
+sh setup.sh
 ```
 
-2. Generate sample data and schema registry:
+2. (Optional) Set a different model before setup:
 
 ```bash
-uv run generate_data.py
+MODEL_NAME=llama3.1 sh setup.sh
 ```
 
 3. Run in interactive mode:
