@@ -22,7 +22,7 @@ install_uv_if_missing() {
     return
   fi
 
-  log "uv not found. Installing uv with pip..."
+  log "uv not found. Installing uv with python3 -m pip..."
   require_cmd python3
 
   if ! python3 -m pip install --user uv; then
@@ -48,11 +48,11 @@ setup_project() {
 
   log "Ensuring Ollama model '$MODEL_NAME' is available..."
   # Normalize installed model names by dropping optional tags (e.g., ":latest").
-  if ! normalized_model_names=$(ollama list | awk 'NR > 1 {print $1}' | cut -d: -f1); then
+  if ! normalized_model_list=$(ollama list | awk 'NR > 1 {print $1}' | cut -d: -f1); then
     log "Error: unable to query Ollama models. Make sure Ollama is running."
     exit 1
   fi
-  if ! printf '%s\n' "$normalized_model_names" | grep -Fxq "$MODEL_NAME_WITHOUT_TAG"; then
+  if ! printf '%s\n' "$normalized_model_list" | grep -Fxq "$MODEL_NAME_WITHOUT_TAG"; then
     ollama pull "$MODEL_NAME"
   fi
 
