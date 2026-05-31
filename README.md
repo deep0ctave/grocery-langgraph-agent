@@ -83,6 +83,8 @@ sh setup.sh
 MODEL_NAME=llama3.1 sh setup.sh
 ```
 
+By default, `setup.sh` uses `qwen2.5`.
+
 3. Run in interactive mode:
 
 ```bash

@@ -46,7 +46,9 @@ setup_project() {
   uv sync
 
   log "Ensuring Ollama model '$MODEL_NAME' is available..."
-  if ! ollama list 2>/dev/null | awk 'NR > 1 {print $1}' | cut -d: -f1 | grep -Fxq "${MODEL_NAME}"; then
+  # Normalize installed model names by dropping optional tags (e.g., ":latest").
+  installed_models=$(ollama list 2>/dev/null | awk 'NR > 1 {print $1}' | cut -d: -f1)
+  if ! printf '%s\n' "$installed_models" | grep -Fxq "${MODEL_NAME}"; then
     ollama pull "$MODEL_NAME"
   fi
 
