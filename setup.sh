@@ -4,6 +4,7 @@ set -eu
 
 MODEL_NAME="${MODEL_NAME:-qwen2.5}"
 MODEL_NAME_WITHOUT_TAG=$(printf '%s' "$MODEL_NAME" | cut -d: -f1)
+UV_INSTALLED_BY_SCRIPT=0
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 log() {
@@ -29,6 +30,7 @@ install_uv_if_missing() {
     log "Error: failed to install uv."
     exit 1
   fi
+  UV_INSTALLED_BY_SCRIPT=1
 
   export PATH="$HOME/.local/bin:$PATH"
   if ! command -v uv >/dev/null 2>&1; then
@@ -48,10 +50,11 @@ setup_project() {
 
   log "Ensuring Ollama model '$MODEL_NAME' is available..."
   # Normalize installed model names by dropping optional tags (e.g., ":latest").
-  if ! normalized_model_list=$(ollama list | awk 'NR > 1 {print $1}' | cut -d: -f1); then
+  if ! ollama_output=$(ollama list); then
     log "Error: unable to query Ollama models. Make sure Ollama is running."
     exit 1
   fi
+  normalized_model_list=$(printf '%s\n' "$ollama_output" | awk 'NR > 1 {print $1}' | cut -d: -f1)
   if ! printf '%s\n' "$normalized_model_list" | grep -Fxq "$MODEL_NAME_WITHOUT_TAG"; then
     ollama pull "$MODEL_NAME"
   fi
@@ -61,6 +64,9 @@ setup_project() {
 
   log ""
   log "Setup complete."
+  if [ "$UV_INSTALLED_BY_SCRIPT" -eq 1 ]; then
+    log "Note: add \$HOME/.local/bin to your shell PATH for future sessions."
+  fi
   log "Run the agent with: uv run main.py"
 }
 

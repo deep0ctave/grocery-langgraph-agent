@@ -83,7 +83,7 @@ sh setup.sh
 MODEL_NAME=llama3.1 sh setup.sh
 ```
 
-By default, `setup.sh` uses `qwen2.5`.
+By default, `setup.sh` uses `qwen2.5` (resolved by Ollama as `qwen2.5:latest`).
 
 3. Run in interactive mode:
 
