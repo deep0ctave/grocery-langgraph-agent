@@ -71,44 +71,62 @@ ollama pull qwen2.5
 
 ## Quick start
 
-1. Install dependencies:
+1. Run the bootstrap script after cloning:
+
+```bash
+bash setup.sh
+```
+
+2. Install dependencies manually, if you prefer:
 
 ```bash
 uv sync
 ```
 
-2. Generate sample data and schema registry:
+3. Generate sample data and schema registry:
 
 ```bash
 uv run generate_data.py
 ```
 
-3. Run in interactive mode:
+4. Run in interactive mode:
 
 ```bash
 uv run main.py
 ```
 
-4. Run one question directly:
+5. Run one question directly:
 
 ```bash
 uv run main.py "How do almond milk prices compare between branch_a and branch_b?"
 ```
 
-5. Run verbose mode (shows SQL + snapshot info):
+6. Run verbose mode (shows SQL + snapshot info):
 
 ```bash
 uv run main.py --verbose "What were the total sales in branch_a in January 2025?"
 ```
 
-## Example questions
+## Passing questions
+
+These questions were recently validated end-to-end against the agent:
+
+1. List all products in branch_a with their prices.
+2. What is the average price of products in branch_b?
+3. How many units were sold across all branches in May 2025?
+4. What is the reorder level for products in branch_c?
+5. Show me products that cost less than $5 in any branch.
+6. Which products appear in all three branches?
+7. What was the sales trend from January to May 2025 in branch_a?
+8. Do we have any products with zero stock across all branches?
+9. What is the most expensive product in each branch?
+10. How many unique products does FreshMart sell?
+
+Additional validated company questions:
 
 1. What are your latest announcements?
 2. What is FreshMart's contact email?
-3. Compare the price of whole milk across all three branches.
-4. Which branch has the highest total inventory for dairy products?
-5. Show me the top 3 best-selling products in branch_b by quantity.
-6. What products are out of stock in branch_c?
+3. What does FreshMart do?
 
 ## Sample terminal outputs
 
