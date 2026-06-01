@@ -28,6 +28,7 @@ if not os.path.exists("schema_registry.json"):
     sys.exit(1)
 
 from agent import run_agent  # noqa: E402 (import after env check)
+from opensearch_agent import run_agent_opensearch  # noqa: E402
 
 EXAMPLE_QUESTIONS = [
     "How do almond milk prices compare between branch_a and branch_b?",
@@ -39,17 +40,47 @@ EXAMPLE_QUESTIONS = [
 
 
 def main():
-    verbose = "--verbose" in sys.argv
-    args    = [a for a in sys.argv[1:] if a != "--verbose"]
+    argv = sys.argv[1:]
+    verbose = "--verbose" in argv
+
+    backend = "sql"
+    if "--backend" in argv:
+        idx = argv.index("--backend")
+        if idx + 1 >= len(argv):
+            print("Error: --backend requires a value (sql or opensearch)")
+            sys.exit(1)
+        backend = argv[idx + 1].strip().lower()
+        if backend not in {"sql", "opensearch"}:
+            print("Error: --backend must be either 'sql' or 'opensearch'")
+            sys.exit(1)
+
+    filtered = []
+    skip_next = False
+    for i, a in enumerate(argv):
+        if skip_next:
+            skip_next = False
+            continue
+        if a == "--verbose":
+            continue
+        if a == "--backend":
+            skip_next = True
+            continue
+        filtered.append(a)
+    args = filtered
+
+    runner = run_agent if backend == "sql" else run_agent_opensearch
 
     if args:
         # One-shot mode
         query = " ".join(args)
         print(f"\nQ: {query}")
-        print(f"A: {run_agent(query, verbose=verbose)}\n")
+        print(f"A: {runner(query, verbose=verbose)}\n")
     else:
         # Interactive REPL
-        print("FreshMart Agent  —  type 'quit' to exit, 'examples' for sample questions\n")
+        print(
+            "FreshMart Agent"
+            f" [{backend}]  —  type 'quit' to exit, 'examples' for sample questions\n"
+        )
         while True:
             try:
                 query = input("You: ").strip()
@@ -64,7 +95,7 @@ def main():
                     print(f"  {i}. {q}")
                 print()
                 continue
-            print(f"Agent: {run_agent(query, verbose=verbose)}\n")
+            print(f"Agent: {runner(query, verbose=verbose)}\n")
 
 
 if __name__ == "__main__":

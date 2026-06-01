@@ -9,6 +9,7 @@ dependencies = [
     "langchain-ollama>=0.2",
     "langchain-core>=0.2",
     "duckdb>=1.0",
+    "opensearch-py>=2.6",
     "pandas>=2.0",
     "cryptography>=42.0",
     "python-dotenv>=1.0",

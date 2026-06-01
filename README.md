@@ -107,6 +107,45 @@ uv run main.py "How do almond milk prices compare between branch_a and branch_b?
 uv run main.py --verbose "What were the total sales in branch_a in January 2025?"
 ```
 
+## OpenSearch backend experiment
+
+This repository now includes an experimental OpenSearch backend so the agent can generate OpenSearch DSL instead of SQL.
+
+1. Start OpenSearch with Docker:
+
+```bash
+docker compose -f opensearch-docker-compose.yml up -d
+```
+
+2. Install dependencies (includes opensearch-py):
+
+```bash
+uv sync
+```
+
+3. Index all snapshot CSV data into OpenSearch:
+
+```bash
+uv run index_opensearch_data.py --reset
+```
+
+4. Run the agent with OpenSearch backend:
+
+```bash
+uv run main.py --backend opensearch --verbose "Which branch has the highest total inventory for dairy products?"
+```
+
+5. Stop OpenSearch when done:
+
+```bash
+docker compose -f opensearch-docker-compose.yml down
+```
+
+Notes:
+
+1. OpenSearch path is experimental and best for search/filter/aggregation-heavy workflows.
+2. SQL backend remains the default and is generally better for complex joins and deterministic analytics.
+
 ## Passing questions
 
 These questions were recently validated end-to-end against the agent:
